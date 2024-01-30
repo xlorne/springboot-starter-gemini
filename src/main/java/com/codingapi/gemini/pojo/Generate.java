@@ -18,25 +18,24 @@ public class Generate {
 
     public static Request creatTextChart(String text) {
         Request request = new Request();
-        request.getContents().add(creatUser(text));
-        request.vision = false;
-        return request;
-    }
-
-    public static Request creatImageChart(String text, File image) {
-        Request request = new Request();
-        request.getContents().add(creatUser(text));
-        request.vision = false;
-        return request;
-    }
-
-
-    private static Request.Chat creatUser(String text) {
         Request.Chat chat = new Request.Chat();
         chat.setRole("user");
         chat.getParts().add(new Request.TextPart(text));
-        return chat;
+        request.getContents().add(chat);
+        request.vision = false;
+        return request;
     }
+
+    public static Request creatImageChart(String text, File image) throws IOException {
+        Request request = new Request();
+        Request.Chat chat = new Request.Chat();
+        chat.getParts().add(new Request.TextPart(text));
+        chat.getParts().add(new Request.ImagePart(image));
+        request.getContents().add(chat);
+        request.vision = true;
+        return request;
+    }
+
 
 
     public static String toAnswer(Response response) {

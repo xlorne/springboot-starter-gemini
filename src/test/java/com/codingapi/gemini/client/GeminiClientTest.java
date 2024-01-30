@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 @SpringBootTest
@@ -24,7 +25,7 @@ class GeminiClientTest {
     }
 
     @Test
-    void generateVision() {
+    void generateVision() throws IOException {
         Generate.Request request = Generate.creatImageChart("这是一张什么图片？", new File("./images/test.png"));
         Generate.Response response = client.generate(request);
         String answer = Generate.toAnswer(response);
