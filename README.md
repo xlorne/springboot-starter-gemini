@@ -19,6 +19,7 @@
 gemini.api-key={your gemini api key}
 gemini.proxy-host={your http proxy host}
 gemini.proxy-port={your http proxy port}
+gemini.version={gemini api version, default is v1beta}
 ```
 
 * Use GeminiClient in your code
@@ -28,6 +29,8 @@ package com.codingapi.gemini.client;
 
 import com.codingapi.gemini.pojo.Embedding;
 import com.codingapi.gemini.pojo.Generate;
+import com.codingapi.gemini.pojo.Model;
+import com.codingapi.gemini.pojo.Models;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +53,6 @@ class GeminiClientTest {
         String answer = Generate.toAnswer(response);
         System.out.println(answer);
     }
-
 
     @Test
     void generateConfiguration() {
@@ -81,11 +83,31 @@ class GeminiClientTest {
     }
 
     @Test
+    void counts() {
+        Generate.Request request = Generate.creatTextChart("你好，请用中文简体回答我，你如何看待区块链？");
+        int tokens = client.counts(request);
+        System.out.println(tokens);
+        assert tokens > 0;
+    }
+
+    @Test
     void embedding() {
         Embedding.Request request = Embedding.creat("你好，我是小强");
         Embedding.Response response = client.embedding(request);
         List<Double> answer = Embedding.toAnswer(response);
         System.out.println(answer);
+    }
+
+    @Test
+    void model() {
+        Model model = client.model("models/gemini-pro");
+        System.out.println(model);
+    }
+
+    @Test
+    void models() {
+        Models models = client.models();
+        System.out.println(models);
     }
 }
 ```

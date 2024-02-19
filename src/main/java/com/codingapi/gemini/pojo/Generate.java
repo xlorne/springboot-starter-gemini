@@ -17,22 +17,20 @@ import java.util.List;
 public class Generate {
 
     public static Request creatTextChart(String text) {
-        Request request = new Request();
+        Request request = new Request("models/gemini-pro");
         Request.Chat chat = new Request.Chat();
         chat.setRole("user");
         chat.getParts().add(new Request.TextPart(text));
         request.getContents().add(chat);
-        request.vision = false;
         return request;
     }
 
     public static Request creatImageChart(String text, File image) throws IOException {
-        Request request = new Request();
+        Request request = new Request("models/gemini-pro-vision");
         Request.Chat chat = new Request.Chat();
         chat.getParts().add(new Request.TextPart(text));
         chat.getParts().add(new Request.ImagePart(image));
         request.getContents().add(chat);
-        request.vision = true;
         return request;
     }
 
@@ -83,12 +81,13 @@ public class Generate {
         private List<Chat> contents;
 
         @JSONField(serialize = false)
-        private boolean vision;
+        private String model;
 
         private List<SafetySetting> safetySettings;
         private GenerationConfig generationConfig;
 
-        public Request() {
+        public Request(String model) {
+            this.model = model;
             this.contents = new ArrayList<>();
         }
 
@@ -159,9 +158,13 @@ public class Generate {
             public Chat() {
                 this.parts = new ArrayList<>();
             }
-
-
         }
+    }
+
+    @Setter
+    @Getter
+    public static class TotalToken{
+        private int totalTokens;
     }
 
     @Setter

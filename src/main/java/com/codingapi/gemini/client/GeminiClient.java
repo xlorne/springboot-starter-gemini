@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.codingapi.gemini.pojo.Embedding;
 import com.codingapi.gemini.pojo.Generate;
+import com.codingapi.gemini.pojo.Model;
+import com.codingapi.gemini.pojo.Models;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpEntity;
@@ -27,13 +29,13 @@ public class GeminiClient {
 
     private final RestTemplate restTemplate;
     private final String apiKey;
-
-    private final static String baseUrl = "https://generativelanguage.googleapis.com/v1beta/";
-
+    private final String baseUrl;
     private final HttpHeaders headers;
 
-    public GeminiClient(String apiKey, String proxyHost, int proxyPort) {
+
+    public GeminiClient(String version, String apiKey, String proxyHost, int proxyPort) {
         this.apiKey = apiKey;
+        this.baseUrl = "https://generativelanguage.googleapis.com/" + version + "/";
         this.restTemplate = new RestTemplate();
 
         this.headers = new HttpHeaders();
@@ -48,7 +50,7 @@ public class GeminiClient {
     }
 
     public void stream(Generate.Request request, Consumer<Generate.Response> consumer) throws IOException {
-        String url = baseUrl + "models/gemini-pro:streamGenerateContent?key=" + apiKey;
+        String url = baseUrl + request.getModel() + ":streamGenerateContent?key=" + apiKey;
         String json = request.toJSONString();
         log.info("json:{}", json);
         HttpEntity<String> httpEntity = new HttpEntity<>(json, headers);
@@ -68,12 +70,7 @@ public class GeminiClient {
 
 
     public Generate.Response generate(Generate.Request request) {
-        String url;
-        if (request.isVision()) {
-            url = baseUrl + "models/gemini-pro-vision:generateContent?key=" + apiKey;
-        } else {
-            url = baseUrl + "models/gemini-pro:generateContent?key=" + apiKey;
-        }
+        String url = baseUrl + request.getModel() + ":generateContent?key=" + apiKey;
         String json = request.toJSONString();
         log.info("json:{}", json);
         HttpEntity<String> httpEntity = new HttpEntity<>(json, headers);
@@ -81,13 +78,42 @@ public class GeminiClient {
         return JSONObject.parseObject(response.getBody(), Generate.Response.class);
     }
 
+
+    public int counts(Generate.Request request) {
+        String url = baseUrl + request.getModel() + ":countTokens?key=" + apiKey;
+        String json = request.toJSONString();
+        log.info("json:{}", json);
+        HttpEntity<String> httpEntity = new HttpEntity<>(json, headers);
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, httpEntity, String.class);
+        Generate.TotalToken result = JSONObject.parseObject(response.getBody(), Generate.TotalToken.class);
+        assert result != null;
+        return result.getTotalTokens();
+    }
+
+
     public Embedding.Response embedding(Embedding.Request request) {
-        String url = baseUrl + "models//embedding-001:embedContent?key=" + apiKey;
+        String url = baseUrl + request.getModel() + ":embedContent?key=" + apiKey;
         String json = request.toJSONString();
         log.info("json:{}", json);
         HttpEntity<String> httpEntity = new HttpEntity<>(json, headers);
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, httpEntity, String.class);
         return JSONObject.parseObject(response.getBody(), Embedding.Response.class);
     }
+
+
+    public Model model(String model) {
+        String url = baseUrl + model + "?key=" + apiKey;
+        HttpEntity<String> httpEntity = new HttpEntity<>(headers);
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, httpEntity, String.class);
+        return JSONObject.parseObject(response.getBody(), Model.class);
+    }
+
+    public Models models() {
+        String url = baseUrl + "models" + "?key=" + apiKey;
+        HttpEntity<String> httpEntity = new HttpEntity<>(headers);
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, httpEntity, String.class);
+        return JSONObject.parseObject(response.getBody(), Models.class);
+    }
+
 
 }
