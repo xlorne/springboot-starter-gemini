@@ -37,12 +37,43 @@ public class Generate {
     }
 
 
-
     public static String toAnswer(Response response) {
         if (response == null || response.getCandidates() == null || response.getCandidates().isEmpty()) {
             return null;
         }
         return response.getCandidates().get(0).getAnswer();
+    }
+
+
+    @Setter
+    @Getter
+    public static class SafetySetting {
+        private String category;
+        private String threshold;
+    }
+
+
+    @Setter
+    @Getter
+    public static class GenerationConfig {
+        private List<String> stopSequences;
+        private float temperature;
+        private int maxOutputTokens;
+        private float topP;
+        private float topK;
+
+
+        public GenerationConfig(List<String> stopSequences,
+                                float temperature,
+                                int maxOutputTokens,
+                                float topP,
+                                float topK) {
+            this.stopSequences = stopSequences;
+            this.temperature = temperature;
+            this.maxOutputTokens = maxOutputTokens;
+            this.topP = topP;
+            this.topK = topK;
+        }
     }
 
 
@@ -54,8 +85,21 @@ public class Generate {
         @JSONField(serialize = false)
         private boolean vision;
 
+        private List<SafetySetting> safetySettings;
+        private GenerationConfig generationConfig;
+
         public Request() {
             this.contents = new ArrayList<>();
+        }
+
+        public void addSafetySetting(String category, String threshold) {
+            if (safetySettings == null) {
+                safetySettings = new ArrayList<>();
+            }
+            SafetySetting safetySetting = new SafetySetting();
+            safetySetting.setCategory(category);
+            safetySetting.setThreshold(threshold);
+            safetySettings.add(safetySetting);
         }
 
         public String toJSONString() {
